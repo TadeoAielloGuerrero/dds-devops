@@ -1,4 +1,4 @@
-name: CI - Docker y GHCR
+name: CI - Docker, GHCR y Docker Hub
 
 on:
   push:
@@ -17,11 +17,14 @@ jobs:
       - name: Obtener codigo
         uses: actions/checkout@v4
 
-      - name: Definir nombre de imagen
+      - name: Definir nombres de imagen
         id: image
         shell: bash
+        env:
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
         run: |
-          echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          echo "ghcr=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          echo "dockerhub=${DOCKERHUB_USERNAME,,}/dds-devops-demo" >> "$GITHUB_OUTPUT"
 
       - name: Construir imagen Docker
         run: docker build -t dds-devops-demo:test .
@@ -46,14 +49,4 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Etiquetar imagen
-        run: |
-          docker tag dds-devops-demo:test \
-            ${{ steps.image.outputs.name }}:${GITHUB_SHA::7}
-
-      - name: Publicar imagen en GHCR
-        run: |
-          docker push \
-            ${{ steps.image.outputs.name }}:${GITHUB_SHA::7}
+          password: ${{ secrets.GITHUB_TOKEN
